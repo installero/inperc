@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
   for (i=0; i<ObjectNum*ParamsNum; i+=ParamsNum) {
     #define Stick_i Stick+i*sizeof(float)
     StickRandomInit(Stick_i);
-    StickPrint(Stick_i);
+    //StickPrint(Stick_i);
   }
 
   free (Stick);
