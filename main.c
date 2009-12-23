@@ -2,118 +2,137 @@
 #include <stdio.h>
 #include <math.h>
 
+void PrintHelp (char * pName); // Prints help output
+
 #include "constants.h"
 #include "init.h"
 
 FILE * res;
 FILE * dbg_obj;
-char * resFileName;
-
 float * O2Od;
 
-float F_rand(); // Returns random float number (0->1)
-void PrintHelp (char * pName); // Prints help output
+#define Stick_i &Stick[i*ParamsNum]
+#define Stick_j &Stick[j*ParamsNum]
+#define Site_i &Site[i*ParamsNum]
+#define Site_j &Site[j*ParamsNum]
 
-void StickRandomInit(float * Stick); // Inits stick's parameters with random values
-void StickPrint(float * Stick); // Prints stick's parameters
+#define O2Od_i_j O2Od[i*ObjectNum+j]
+#define O2Od_j_i O2Od[j*ObjectNum+i]
+
+#define x Stick[X]
+#define y Stick[Y]
+#define z Stick[Z]
+#define L Stick[Length]
+#define W Stick[Width]
+#define Th Stick[Theta]
+#define F Stick[Fi]
+#define x0 Point[X]
+#define y0 Point[Y]
+#define z0 Point[Z]
+#define W0 Point[Width]
+
+#define x1 Stick1[X]
+#define y1 Stick1[Y]
+#define z1 Stick1[Z]
+#define L1 Stick1[Length]
+#define W1 Stick1[Width]
+#define Th1 Stick1[Theta]
+#define F1 Stick1[Fi]
+#define x2 Stick2[X]
+#define y2 Stick2[Y]
+#define z2 Stick2[Z]
+#define L2 Stick2[Length]
+#define W2 Stick2[Width]
+#define Th2 Stick2[Theta]
+#define F2 Stick2[Fi]
+
+float F_rand(); // Returns random float number (0->1)
+
+inline void StickRandomInit(float * Stick); // Inits stick's parameters with random values
+inline void StickPrint(float * Stick); // Prints stick's parameters
 inline float StickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks
 inline float StickToPointDistance (float * Stick, float * Point); // Finds distance between a stick and a point
 inline float StickToBoundaryDistance (float * Stick, int Dir); // Finds distance from a stick to a boundary at a certain direction
+inline void FindDistances(float * Stick); // Finds distances between all the sticks in array and stores them to O2Od
+inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); // Checks whether percotation is achieved
 
 int main(int argc, char * argv[]) {
   SetDefaultValues();
-
-  int i;
-
-  for (i=1;i < argc;i++) {
-		if (argv[i][0] == '-') {
-			switch ( argv[i][1] ) {
-				case 'v':	{
-					VerboseMode=1;
-					break;
-				};
-				case 'c': {
-					if ((i+1) < argc) BoundAccuracy=atof(argv[i+1]);
-					else PrintHelp (argv[0]);
-				  break;
-				};
-				case 'e': {
-					if ((i+1) < argc) ExperimentNum=atoi(argv[i+1]);
-					else PrintHelp (argv[0]);
-					break;
-				};
-				case 'r': {
-					if ((i+1) < argc) resFileName=argv[i+1];
-					else PrintHelp (argv[0]);
-					break;
-				};
-				case 'n': {
-					if ((i+1) < argc) ObjectNum=atoi(argv[i+1]);
-					else PrintHelp (argv[0]);
-					break;
-				};
-				case 'w': {
-					if ((i+1) < argc ) StickWidth = atof (argv[i+1]);
-					else PrintHelp (argv[0]);
-					break;
-				};
-				case 'l':	{
-					if ((i+1) < argc) StickLength = atof(argv[i+1]);
-					else PrintHelp (argv[0]);
-					break;
-				};
-				case 'd': {
-					switch (argv[i][2]) {
-            case 'l':	{
-              if ((i+1) < argc) StickLengthDistortion=atof(argv[i+1]);
-					    else PrintHelp (argv[0]);
-              break;
-						};
-            case 'w':	{
-              if ((i+1) < argc) StickWidthDistortion=atof(argv[i+1]);
-					    else PrintHelp (argv[0]);
-              break;
-						};
-            case 't':	{
-              if ((i+1) < argc)	StickThetaDistortion=pi*atof(argv[i+1]);
-              else PrintHelp (argv[0]);
-              break;
-            };
-            case 'f':	{
-              if ((i+1) < argc)	StickFiDistortion=pi*atof(argv[i+1]);
-              else PrintHelp (argv[0]);
-              break;
-            };
-						default: PrintHelp (argv[0]);
-					}
-					break;
-				};
-				default: PrintHelp (argv[0]);
-			};
-		};
-	};
-
-  float Stick1[ParamsNum];
-  float Stick2[ParamsNum];
-
-  StickRandomInit(Stick1);
-  StickRandomInit(Stick2);
-
-  StickPrint(Stick1);
-  StickPrint(Stick2);
+  SetParams(argc,argv);
 
   float * Stick;
+  Stick = malloc(ObjectNum*ParamsNum*sizeof(float));
 
-  Stick = (float *) malloc(ObjectNum*ParamsNum);
-  if (Stick==NULL) exit(1);
+  O2Od = malloc(ObjectNum*ObjectNum*sizeof(float));
 
-  for (i=0; i<ObjectNum*ParamsNum; i+=ParamsNum) {
-    #define Stick_i Stick+i*sizeof(float)
-    StickRandomInit(Stick_i);
-    //StickPrint(Stick_i);
+  int i,e, percolation_x, percolation_y, percolation_z;
+
+  float BoundStep;
+  float BoundDistNew_x, BoundDist_x, Rc_x_av = 0;
+  float BoundDistNew_y, BoundDist_y, Rc_y_av = 0;
+  float BoundDistNew_z, BoundDist_z, Rc_z_av = 0;
+
+  float * Rc_x, * Rc_y, * Rc_z;
+  Rc_x = malloc(ExperimentNum*sizeof(float));
+  Rc_y = malloc(ExperimentNum*sizeof(float));
+  Rc_z = malloc(ExperimentNum*sizeof(float));
+
+  for (e=0; e<ExperimentNum; e++) {
+    for (i=0; i<ObjectNum; i++) StickRandomInit(Stick_i);
+    if(VerboseMode) {
+      for (i=0; i<ObjectNum; i++) {
+        printf("%d: ",i);
+        StickPrint(Stick_i);
+      }
+    }
+
+    FindDistances(Stick);
+
+    percolation_x = 0;
+    percolation_y = 0;
+    percolation_z = 0;
+    BoundStep = (float)(Distance_MAX)/2;
+    BoundDistNew_x = BoundStep;
+    BoundDistNew_y = BoundStep;
+    BoundDistNew_z = BoundStep;
+    BoundDist_x = 0;
+    BoundDist_y = 0;
+    BoundDist_z = 0;
+
+    while (BoundStep > BoundAccuracy) {
+      BoundStep /= 2;
+      BoundDist_x = BoundDistNew_x;
+      BoundDist_y = BoundDistNew_y;
+      BoundDist_z = BoundDistNew_z;
+
+      fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, B_x: %1.5f, B_y: %1.5f, B_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
+
+      percolation_x = CheckPercolation(Stick, BoundDist_x, MIN_X, MAX_X);
+      percolation_y = CheckPercolation(Stick, BoundDist_y, MIN_Y, MAX_Y);
+      percolation_z = CheckPercolation(Stick, BoundDist_z, MIN_Z, MAX_Z);
+
+      if (!percolation_x) BoundDistNew_x += BoundStep;
+      else BoundDistNew_x -= BoundStep;
+      if (!percolation_y) BoundDistNew_y += BoundStep;
+      else BoundDistNew_y -= BoundStep;
+      if (!percolation_z) BoundDistNew_z += BoundStep;
+      else BoundDistNew_z -= BoundStep;
+    }
+
+    Rc_x[e] = BoundDist_x;
+    Rc_y[e] = BoundDist_y;
+    Rc_z[e] = BoundDist_z;
+
+    fprintf(stderr,"\n");
   }
 
-  free (Stick);
+  for (e=0; e<ExperimentNum; e++) {
+    Rc_x_av += Rc_x[e]/(float)ExperimentNum;
+    Rc_y_av += Rc_y[e]/(float)ExperimentNum;
+    Rc_z_av += Rc_z[e]/(float)ExperimentNum;
+  }
+
+  fprintf (stderr,"Rc_x_av: %1.5f, Rc_y_av: %1.5f, Rc_z_av: %1.5f\n", Rc_x_av, Rc_y_av, Rc_z_av); 
 
   return 0;
 }
@@ -138,21 +157,6 @@ void StickPrint(float * Stick) {
 float F_rand() {return (float)rand()/RAND_MAX;};
 
 float StickToStickDistance (float * Stick1, float * Stick2) {
-  #define x1 Stick1[X]
-  #define y1 Stick1[Y]
-  #define z1 Stick1[Z]
-  #define L1 Stick1[Length]
-  #define W1 Stick1[Width]
-  #define Th1 Stick1[Theta]
-  #define F1 Stick1[Fi]
-  #define x2 Stick2[X]
-  #define y2 Stick2[Y]
-  #define z2 Stick2[Z]
-  #define L2 Stick2[Length]
-  #define W2 Stick2[Width]
-  #define Th2 Stick2[Theta]
-  #define F2 Stick2[Fi]
-  
   static float dx, dy, dz, ex1, ex2, ey1, ey2, ez1, ez2, K, Kp, Kq, p, q, Dx, Dy, Dz;
 
   dx = x1-x2;
@@ -221,17 +225,6 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
 };
 
 float StickToPointDistance (float * Stick, float * Point) {
-  #define x Stick[X]
-  #define y Stick[Y]
-  #define z Stick[Z]
-  #define L Stick[Length]
-  #define W Stick[Width]
-  #define Th Stick[Theta]
-  #define F Stick[Fi]
-  #define x0 Point[X]
-  #define y0 Point[Y]
-  #define z0 Point[Z]
-  #define W0 Point[Width]
 
   static float dx, dy, dz, ex, ey, ez, K, p, Dx, Dy, Dz;
 
@@ -269,89 +262,83 @@ inline float StickToBoundaryDistance (float * Stick, int Dir) {
   return 0;
 }
 
-/*
-int CheckPercolation(float * Stick[ParamsNum], float BoundDist, int Start, int End)
+void FindDistances(float * Stick) {
+  int i, j;
+  for (i=0; i < ObjectNum; i++) {
+    fprintf ( stderr, "\rCounting distances: %1.2f%%", (float)(i*100)/(float)(ObjectNum));
+		for (j=0; j<ObjectNum; j++) {
+			if (i == j) O2Od_i_j=0;
+			else if (i > j) O2Od_i_j=O2Od_j_i;
+			else O2Od_i_j=StickToStickDistance(Stick_i,Stick_j);
+		}
+	}
+}
+
+int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 {
+  int i,j,k;
+
+  int SiteState[ObjectNum];
+	for (i=0; i < ObjectNum; i++) SiteState[i]=StateNew;
+
 	int InfCluster[ObjectNum];
 	int InfClusterStickNum = 0;
 
-  int StickState[ObjectNum];
-  int i;
+	if (VerboseMode) printf("Start:%d, BoundDist:%1.5f\n", Start, BoundDist);
 
-	for (i=0; i < SiteNumber; i++) StickState[i]=StateNew;
-
-	if (Verbose) printf("\nThese objects touched the start (%d), BoundDist = %1.5f:\n", Start, BoundDist);
-
-	for (i=0;i < SiteNumber;i++) {
-		if (StickToBoundaryDistance(Stick[i], Start)<BoundDist)
-		{
-			if (Verbose) Site[i].Print();
-			Site[i].History = InfClAlive;
+	for (i=0;i < ObjectNum;i++) {
+		if (StickToBoundaryDistance(Site_i, Start) < BoundDist) {
+			if (VerboseMode) StickPrint(Site_i);
+			SiteState[i] = StateInfClNew;
 			InfCluster[InfClusterStickNum] = i;
 			InfClusterStickNum ++;
 		}
 	}
+ 
+	for (k=0; k < InfClusterStickNum; k++) {
+		i = InfCluster[k];
 
-	for ( int k = 0; k < InfClusterStickNum; k++ )
-	{
-		int i = InfCluster[k];
-
-		if ( Site[i].History == InfClAlive )
-		{
-			for ( int j = 0; j < ObjectNumber; j++ )
-			{
-				if ( !SeekLength )
-				{
-					if ( Site[j].History == New && ( O2Od[j*ObjectNumber + i] <= (BoundDist + 2*StickWidth) ) )
-					{
-						Site[j].History = InfClAlive;
-						InfCluster[InfClusterStickNum] = j;
-						InfClusterStickNum ++;
-					}
-				}
-				else
-				{
-					if ( Site[j].History == New && ( Site[j].O2Odist(Site[i]) <= (BoundDist + 2*StickWidth) ) )
-					{
-						Site[j].History = InfClAlive;
-						InfCluster[InfClusterStickNum] = j;
-						InfClusterStickNum ++;
-					}
-
-				}
-
+		if (StickToBoundaryDistance(Site_i, End) < BoundDist) {
+			if (VerboseMode) {
+				printf ("End (%d):\n", End);
+        StickPrint(Site_i);
 			}
-			Site[i].History = InfClDead;
+			return 1;
 		}
-		
-		if ( Site[i].BoundaryTouch ( DirEnd, BoundDist + StickWidth) )
-		{
-			if ( Verbose )
-			{
-				printf ( "\nThis object touched the end (%d):\n", DirEnd );
-				Site[i].Print();
+
+		if (SiteState[i] == StateInfClNew) {
+			for (j=0; j < ObjectNum; j++) {
+					if (SiteState[j] == StateNew && (O2Od_i_j < BoundDist)) {
+            if (VerboseMode) {
+              printf("Touch!\n");
+              StickPrint(Site_i);
+              StickPrint(Site_j);
+            }
+            SiteState[j] = StateInfClNew;
+						InfCluster[InfClusterStickNum] = j;
+						InfClusterStickNum ++;
+					}
 			}
-			return true;
+			SiteState[i] = StateInfClOld;
 		}
 	}
 
-	return false;
+	return 0;
 };
-*/
 
 void PrintHelp (char * pName)
 {
 	printf("Usage: %s [options]\n", pName);
-	printf("\t-v\t\t\tdisplays verbose output [no]\n");
-	printf("\t-e int\t\t\tnumber of realisations for each system [2]\n");
+	printf("\t-v\t\t\tdisplay verbose output [off]\n");
+	printf("\t-e int\t\t\tnumber of realisations [1]\n");
 	printf("\t-n int\t\t\tnumber of objects [10]\n");
+	printf("\t-c float\t\tcritical bound dist accuracy [0.1]\n");
+	printf("\t-l float\t\tstick length [0.0]\n");
+	printf("\t-dl float\t\tstick leng dispersion [0.0]\n");
 	printf("\t-w float\t\tstick width [0.0]\n");
-	printf("\t-a float\t\tangle dispersion value (in pi) [0.5]\n");
-	printf("\t-l float\t\tstick length value [0.0]\n");
-	printf("\t-c float\t\tcritical bound dist accuracy [0.01]\n");
-	printf("\t-sl\t\tseek for critical length on each situation [no]\n");
-	printf("\t-su\t\tshow the critical av. bounds per node on each situation [no]\n");
-	printf("\t-si float\t\tStick length distortion [0]\n");
+	printf("\t-dw float\t\tstick width dispersion [0.0]\n");
+	printf("\t-df float\t\tstick azimuth angle dispersion [pi]\n");
+	printf("\t-dt float\t\tstick polar angle dispersion [pi/2]\n");
 	printf("\t-r FILE\t\t\tresults output file [results.txt]\n");
   printf("\t-h, --help\t\tshow this usage statement\n");
 	exit (1);						

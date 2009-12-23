@@ -4,7 +4,7 @@
 #define MIN_YSide 0.0f
 #define MAX_YSide 1.0f
 #define MIN_ZSide 0.0f
-#define MAX_ZSide 1.0f
+#define MAX_ZSide 0.0f
 
 #define Distance_MAX (MAX_XSide - MIN_XSide + MAX_YSide - MIN_YSide + MAX_ZSide - MIN_ZSide)
 
@@ -25,10 +25,10 @@
 
 #define ExperimentNumDef	          1
 #define ObjectNumDef		            10
-#define BoundAccuracyDef        0.1f
+#define BoundAccuracyDef            0.1f
+#define ResFileNameDef		          "results.txt"
 
 /*
-#define resFileNameDef		"results.txt"
 #define SeekLengthDef		0
 #define SearchCritAvBoundsDef		0
 */
@@ -40,12 +40,13 @@ float StickWidth;			          // Stick width
 float StickWidthDistortion;		  // Stick width is distorted with that dispercy
 float StickThetaDistortion;     // Stick polar angle distortion
 float StickFiDistortion;        // Stick azimuth angle distortion
+int ExperimentNum;		          // Number of realisations of each system
+int ObjectNum;		              // Number of objects
+float BoundAccuracy;            // Minimum value that two bound distance steps can vary one from each other
+char * ResFileName;             // Results file name
 
 void SetDefaultValues();
-
-int ExperimentNum;		// Number of realisations of each system
-int ObjectNum;		// Number of objects
-float BoundAccuracy; // Minimum value that two bound distance steps can vary one from each other
+void SetParams();
 
 /*
 bool SeekLength;		// Seek Critical Length (Rc=0)
