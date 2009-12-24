@@ -197,9 +197,9 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   ez1 = cos(Th1);
   ez2 = cos(Th2);
 
-  K = ex1*ex2 + ey1*ey2 + ez1*ez2;
-  Kp = dx*ex1 + dy*ey1 + dz*ez1;
-  Kq = (-1)*(dx*ex2 + dy*ey2 + dz*ez2);
+  K = ex1*ex2+ey1*ey2+ez1*ez2;
+  Kp = dx*ex1+dy*ey1+dz*ez1;
+  Kq = dx*ex2+dy*ey2+dz*ez2;
 
   if (K == 1) { // if the stick's are parallel
     static float Distance_tmp, Distance_new;
@@ -237,7 +237,7 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   else { // if the stick's are not parallel
     if (L1) p=2*(K*Kq-Kp)/(L1*(1-K*K));
     else p=0;
-    if (L2) q=2*(K*Kp-Kq)/(L2*(1-K*K));
+    if (L2) q=2*(Kq-K*Kp)/(L2*(1-K*K));
     else q=0;
     
     if (p > 1) p=1;
