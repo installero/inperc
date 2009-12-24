@@ -126,8 +126,6 @@ int main(int argc, char * argv[]) {
     Rc_y[e] = BoundDist_y;
     Rc_z[e] = BoundDist_z;
 
-
-
     fprintf(stderr,"\n");
   }
 
@@ -201,7 +199,7 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
 
   K = ex1*ex2 + ey1*ey2 + ez1*ez2;
   Kp = dx*ex1 + dy*ey1 + dz*ez1;
-  Kq = dx*ex2 + dy*ey2 + dz*ez2;
+  Kq = (-1)*(dx*ex2 + dy*ey2 + dz*ez2);
 
   if (K == 1) { // if the stick's are parallel
     static float Distance_tmp, Distance_new;
@@ -238,7 +236,9 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   }
   else { // if the stick's are not parallel
     if (L1) p=2*(K*Kq-Kp)/(L1*(1-K*K));
+    else p=0;
     if (L2) q=2*(K*Kp-Kq)/(L2*(1-K*K));
+    else q=0;
     
     if (p > 1) p=1;
     else if (p < -1) p=-1;
@@ -339,7 +339,7 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 			for (j=0; j < ObjectNum; j++) {
 					if (SiteState[j] == StateNew && (O2Od_i_j < BoundDist)) {
             if (VerboseMode) {
-              printf("Touch!\n");
+              printf("Touch (Distanse = %1.5f)!\n", O2Od_i_j);
               StickPrint(Site_i);
               StickPrint(Site_j);
             }
