@@ -4,7 +4,7 @@
 #define MIN_YSide 0.0f
 #define MAX_YSide 1.0f
 #define MIN_ZSide 0.0f
-#define MAX_ZSide 0.0f
+#define MAX_ZSide 1.0f
 
 #define Distance_MAX (MAX_XSide - MIN_XSide + MAX_YSide - MIN_YSide + MAX_ZSide - MIN_ZSide)
 
@@ -15,6 +15,7 @@
 
 // Experiment
 #define VerboseModeDef		          0
+#define ThreDModeDef		                0
 
 #define StickLengthDef		          0.0f
 #define StickLengthDistortionDef		0.0f
@@ -34,6 +35,7 @@
 */
 
 int VerboseMode;			          // Verbose mode on/off
+int ThreeDMode;			                // 3 dimensions mode on/off
 float StickLength;			        // Stick length
 float StickLengthDistortion;		// Stick length is distorted with that dispercy
 float StickWidth;			          // Stick width

@@ -59,6 +59,9 @@ inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); 
 int main(int argc, char * argv[]) {
   SetDefaultValues();
   SetParams(argc,argv);
+  
+  res = fopen ( ResFileName, "a" ) ;
+	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%\n" );
 
   float * Stick;
   Stick = malloc(ObjectNum*ParamsNum*sizeof(float));
@@ -68,9 +71,9 @@ int main(int argc, char * argv[]) {
   int i,e, percolation_x, percolation_y, percolation_z;
 
   float BoundStep;
-  float BoundDistNew_x, BoundDist_x, Rc_x_av = 0;
-  float BoundDistNew_y, BoundDist_y, Rc_y_av = 0;
-  float BoundDistNew_z, BoundDist_z, Rc_z_av = 0;
+  float BoundDistNew_x, BoundDist_x, Rc_x_av, Rc_x_disp = 0;
+  float BoundDistNew_y, BoundDist_y, Rc_y_av, Rc_y_disp = 0;
+  float BoundDistNew_z, BoundDist_z, Rc_z_av, Rc_z_disp = 0;
 
   float * Rc_x, * Rc_y, * Rc_z;
   Rc_x = malloc(ExperimentNum*sizeof(float));
@@ -105,7 +108,7 @@ int main(int argc, char * argv[]) {
       BoundDist_y = BoundDistNew_y;
       BoundDist_z = BoundDistNew_z;
 
-      fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, B_x: %1.5f, B_y: %1.5f, B_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
+      fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, R_x: %1.5f, R_y: %1.5f, R_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
 
       percolation_x = CheckPercolation(Stick, BoundDist_x, MIN_X, MAX_X);
       percolation_y = CheckPercolation(Stick, BoundDist_y, MIN_Y, MAX_Y);
@@ -123,28 +126,54 @@ int main(int argc, char * argv[]) {
     Rc_y[e] = BoundDist_y;
     Rc_z[e] = BoundDist_z;
 
+
+
     fprintf(stderr,"\n");
   }
 
   for (e=0; e<ExperimentNum; e++) {
-    Rc_x_av += Rc_x[e]/(float)ExperimentNum;
-    Rc_y_av += Rc_y[e]/(float)ExperimentNum;
-    Rc_z_av += Rc_z[e]/(float)ExperimentNum;
+    Rc_x_av += Rc_x[e];
+    Rc_y_av += Rc_y[e];
+    Rc_z_av += Rc_z[e];
   }
 
-  fprintf (stderr,"Rc_x_av: %1.5f, Rc_y_av: %1.5f, Rc_z_av: %1.5f\n", Rc_x_av, Rc_y_av, Rc_z_av); 
+  Rc_x_av=Rc_x_av/(float)ExperimentNum;
+  Rc_y_av=Rc_y_av/(float)ExperimentNum;
+  Rc_z_av=Rc_z_av/(float)ExperimentNum;
+
+  for (e=0; e<ExperimentNum; e++) {
+    Rc_x_disp += pow(Rc_x[e]-Rc_x_av,2);
+    Rc_y_disp += pow(Rc_y[e]-Rc_y_av,2);
+    Rc_z_disp += pow(Rc_z[e]-Rc_z_av,2);
+  }
+
+  Rc_x_disp=sqrt(Rc_x_disp/(float)ExperimentNum);
+  Rc_y_disp=sqrt(Rc_y_disp/(float)ExperimentNum);
+  Rc_z_disp=sqrt(Rc_z_disp/(float)ExperimentNum);
+
+  fprintf (stderr,"Rc_x:%1.5f±%1.5f, Rc_y:%1.5f±%1.5f, Rc_z:%1.5f±%1.5f\n", Rc_x_av, Rc_x_disp, Rc_y_av, Rc_y_disp, Rc_z_av, Rc_z_disp); 
+
+
+	fprintf (res, "%d\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n",
+          ExperimentNum, ObjectNum, StickLength, StickLengthDistortion, StickWidth,
+          StickWidthDistortion, StickFiDistortion, StickThetaDistortion, (Rc_x_av+Rc_y_av)/2, (Rc_x_disp+Rc_y_disp)/2);
 
   return 0;
 }
 
 void StickRandomInit(float * Stick) {
-  Stick[X] = MIN_XSide + (MAX_XSide - MIN_XSide)*F_rand();
-  Stick[Y] = MIN_YSide + (MAX_YSide - MIN_YSide)*F_rand();
-  Stick[Z] = MIN_ZSide + (MAX_ZSide - MIN_ZSide)*F_rand();
-  Stick[Length] = (StickLength - StickLengthDistortion) + 2*StickLengthDistortion*F_rand();
-  Stick[Width] = (StickWidth - StickWidthDistortion) + 2*StickWidthDistortion*F_rand();
-  Stick[Theta] = (pi/2 - StickThetaDistortion) + 2*StickThetaDistortion*F_rand();
-  Stick[Fi] = (pi - StickFiDistortion) + 2*StickFiDistortion*F_rand();
+  Stick[X]=MIN_XSide+(MAX_XSide-MIN_XSide)*F_rand();
+  Stick[Y]=MIN_YSide+(MAX_YSide-MIN_YSide)*F_rand();
+  Stick[Length]=(StickLength-StickLengthDistortion)+2*StickLengthDistortion*F_rand();
+  Stick[Width]=(StickWidth-StickWidthDistortion)+2*StickWidthDistortion*F_rand();
+  Stick[Fi]=(pi-StickFiDistortion)+2*StickFiDistortion*F_rand();
+  if (ThreeDMode) {
+    Stick[Z]=MIN_ZSide+(MAX_ZSide-MIN_ZSide)*F_rand();
+    Stick[Theta]=(pi/2-StickThetaDistortion)+2*StickThetaDistortion*F_rand();
+  } else {
+    Stick[Z]=0;
+    Stick[Theta]=pi/2; 
+  }
 };
 
 void StickPrint(float * Stick) {
@@ -257,7 +286,7 @@ inline float StickToBoundaryDistance (float * Stick, int Dir) {
   if (Dir == MAX_Y) return MAX_YSide-(y+W+fabs(L*sin(Th)*sin(F)/2));
   if (Dir == MIN_Z) return (z-W-fabs(L*cos(Th)/2))-MIN_ZSide;
   if (Dir == MAX_Z) return MAX_ZSide-(z+W+fabs(L*cos(Th)/2));
-  fprintf (stderr,"Error: StickToDoundaryDistance, Unknown direction!");
+  fprintf (stderr,"Error: StickToBoundaryDistance, Unknown direction!");
   exit(1);
   return 0;
 }
@@ -330,6 +359,7 @@ void PrintHelp (char * pName)
 {
 	printf("Usage: %s [options]\n", pName);
 	printf("\t-v\t\t\tdisplay verbose output [off]\n");
+	printf("\t-3\t\t\t3 dimension system mode [off]\n");
 	printf("\t-e int\t\t\tnumber of realisations [1]\n");
 	printf("\t-n int\t\t\tnumber of objects [10]\n");
 	printf("\t-c float\t\tcritical bound dist accuracy [0.1]\n");
