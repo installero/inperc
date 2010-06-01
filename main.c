@@ -59,17 +59,32 @@ inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); 
 int main(int argc, char * argv[]) {
   SetDefaultValues();
   SetParams(argc,argv);
-  
+
   res = fopen ( ResFileName, "a" ) ;
-	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%\n" );
+	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%rs\n" );
 
   float * Stick;
   Stick = malloc(ObjectNum*ParamsNum*sizeof(float));
+
+  /*
+  // Test Points
+  float * Point1;
+  float * Point2;
+  Point1 = malloc(ParamsNum*sizeof(float));
+  Point2 = malloc(ParamsNum*sizeof(float));
+  StickRandomInit(Point1);
+  StickRandomInit(Point2);
+  StickPrint(Point1);
+  StickPrint(Point2);
+  float new_distance = StickToStickDistance(Point1, Point2);
+	fprintf (stderr, "Distance = %1.5f\n",new_distance);
+  */
 
   O2Od = malloc(ObjectNum*ObjectNum*sizeof(float));
 
   int i,e, percolation_x, percolation_y, percolation_z;
 
+  float rs;
   float BoundStep;
   float BoundDistNew_x, BoundDist_x, Rc_x_av, Rc_x_disp = 0;
   float BoundDistNew_y, BoundDist_y, Rc_y_av, Rc_y_disp = 0;
@@ -149,12 +164,13 @@ int main(int argc, char * argv[]) {
   Rc_y_disp=sqrt(Rc_y_disp/(float)ExperimentNum);
   Rc_z_disp=sqrt(Rc_z_disp/(float)ExperimentNum);
 
-  fprintf (stderr,"Rc_x:%1.5f±%1.5f, Rc_y:%1.5f±%1.5f, Rc_z:%1.5f±%1.5f\n", Rc_x_av, Rc_x_disp, Rc_y_av, Rc_y_disp, Rc_z_av, Rc_z_disp); 
+  rs = pow((3/(4*ObjectNum*pi)),0.33333);
 
+  fprintf (stderr,"Rc_x:%1.5f±%1.5f, Rc_y:%1.5f±%1.5f, Rc_z:%1.5f±%1.5f, r_s: %1.5f\n", Rc_x_av, Rc_x_disp, Rc_y_av, Rc_y_disp, Rc_z_av, Rc_z_disp, rs); 
 
-	fprintf (res, "%d\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n",
+	fprintf (res, "%d\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n",
           ExperimentNum, ObjectNum, StickLength, StickLengthDistortion, StickWidth,
-          StickWidthDistortion, StickFiDistortion, StickThetaDistortion, (Rc_x_av+Rc_y_av)/2, (Rc_x_disp+Rc_y_disp)/2);
+          StickWidthDistortion, StickFiDistortion, StickThetaDistortion, (Rc_x_av+Rc_y_av)/2, (Rc_x_disp+Rc_y_disp)/2, rs);
 
   return 0;
 }
