@@ -61,7 +61,6 @@ int main(int argc, char * argv[]) {
   SetParams(argc,argv);
 
   res = fopen ( ResFileName, "a" ) ;
-	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%rs\n" );
 
   float * Stick;
   Stick = malloc(ObjectNum*ParamsNum*sizeof(float));
@@ -85,10 +84,11 @@ int main(int argc, char * argv[]) {
   int i,e, percolation_x, percolation_y, percolation_z;
 
   float rs;
+  float Rc_av, Rc_disp;
   float BoundStep;
-  float BoundDistNew_x, BoundDist_x, Rc_x_av, Rc_x_disp = 0;
-  float BoundDistNew_y, BoundDist_y, Rc_y_av, Rc_y_disp = 0;
-  float BoundDistNew_z, BoundDist_z, Rc_z_av, Rc_z_disp = 0;
+  float BoundDistNew_x, BoundDist_x, Rc_x_av = 0, Rc_x_disp = 0;
+  float BoundDistNew_y, BoundDist_y, Rc_y_av = 0, Rc_y_disp = 0;
+  float BoundDistNew_z, BoundDist_z, Rc_z_av = 0, Rc_z_disp = 0;
 
   float * Rc_x, * Rc_y, * Rc_z;
   Rc_x = malloc(ExperimentNum*sizeof(float));
@@ -164,13 +164,27 @@ int main(int argc, char * argv[]) {
   Rc_y_disp=sqrt(Rc_y_disp/(float)ExperimentNum);
   Rc_z_disp=sqrt(Rc_z_disp/(float)ExperimentNum);
 
-  rs = pow((3/(4*ObjectNum*pi)),0.33333);
+  if (ThreeDMode) {
+    rs = pow((3/(4*ObjectNum*pi)),0.33333);
+    Rc_av = (Rc_x_av + Rc_y_av + Rc_z_av)/3;
+    Rc_disp = (Rc_x_disp + Rc_y_disp + Rc_z_disp)/3;
+  } else {
+    rs = sqrt(1/(ObjectNum*pi));
+    Rc_av = (Rc_x_av + Rc_y_av)/2;
+    Rc_disp = (Rc_x_disp + Rc_y_disp)/2;
+  }
 
   fprintf (stderr,"Rc_x:%1.5f±%1.5f, Rc_y:%1.5f±%1.5f, Rc_z:%1.5f±%1.5f, r_s: %1.5f\n", Rc_x_av, Rc_x_disp, Rc_y_av, Rc_y_disp, Rc_z_av, Rc_z_disp, rs); 
 
-	fprintf (res, "%d\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n",
-          ExperimentNum, ObjectNum, StickLength, StickLengthDistortion, StickWidth,
-          StickWidthDistortion, StickFiDistortion, StickThetaDistortion, (Rc_x_av+Rc_y_av)/2, (Rc_x_disp+Rc_y_disp)/2, rs);
+	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%rs\t%%Rc/rs\t%%Rc/rs_e\n" );
+	fprintf (res, "%d\t%d\t", ExperimentNum, ObjectNum);
+	fprintf (res, "%1.5f\t%1.5f\t", StickLength, StickLengthDistortion);
+	fprintf (res, "%1.5f\t%1.5f\t", StickWidth, StickWidthDistortion);
+	fprintf (res, "%1.5f\t%1.5f\t", StickFiDistortion, StickThetaDistortion);
+	fprintf (res, "%1.7f\t%1.7f\t", Rc_av, Rc_disp);
+	fprintf (res, "%1.7f\t", rs);
+	fprintf (res, "%1.7f\t%1.7f\t", Rc_av/rs, Rc_disp/rs);
+	fprintf (res, "\n");
 
   return 0;
 }
