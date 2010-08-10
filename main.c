@@ -51,6 +51,8 @@ float F_rand(); // Returns random float number (0->1)
 inline void StickRandomInit(float * Stick); // Inits stick's parameters with random values
 inline void StickPrint(float * Stick); // Prints stick's parameters
 inline float StickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks
+inline float WildStickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks roughly
+inline float RoughStickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks roughly
 inline float StickToPointDistance (float * Stick, float * Point); // Finds distance between a stick and a point
 inline float StickToBoundaryDistance (float * Stick, int Dir); // Finds distance from a stick to a boundary at a certain direction
 inline void FindDistances(float * Stick); // Finds distances between all the sticks in array and stores them to O2Od
@@ -79,13 +81,13 @@ int main(int argc, char * argv[]) {
 	fprintf (stderr, "Distance = %1.5f\n",new_distance);
   */
 
-  O2Od = malloc(ObjectNum*ObjectNum*sizeof(float));
+  //O2Od = malloc(ObjectNum*ObjectNum*sizeof(float));
 
   int i,e, percolation_x, percolation_y, percolation_z;
 
   float rs;
   float Rc_av, Rc_disp;
-  float BoundStep;
+  float BoundStep, StartBoundStep;
   float BoundDistNew_x, BoundDist_x, Rc_x_av = 0, Rc_x_disp = 0;
   float BoundDistNew_y, BoundDist_y, Rc_y_av = 0, Rc_y_disp = 0;
   float BoundDistNew_z, BoundDist_z, Rc_z_av = 0, Rc_z_disp = 0;
@@ -94,6 +96,14 @@ int main(int argc, char * argv[]) {
   Rc_x = malloc(ExperimentNum*sizeof(float));
   Rc_y = malloc(ExperimentNum*sizeof(float));
   Rc_z = malloc(ExperimentNum*sizeof(float));
+
+  if (ThreeDMode) {
+    rs = pow((3/(4*ObjectNum*pi)),0.33333);
+    StartBoundStep = 1.5f*rs;
+  } else {
+    rs = sqrt(1/(ObjectNum*pi));
+    StartBoundStep = 2.2f*rs;
+  }
 
   for (e=0; e<ExperimentNum; e++) {
     for (i=0; i<ObjectNum; i++) StickRandomInit(Stick_i);
@@ -104,12 +114,12 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    FindDistances(Stick);
+    //FindDistances(Stick);
 
     percolation_x = 0;
     percolation_y = 0;
     percolation_z = 0;
-    BoundStep = (float)(Distance_MAX)/2;
+    BoundStep = StartBoundStep;
     BoundDistNew_x = BoundStep;
     BoundDistNew_y = BoundStep;
     BoundDistNew_z = BoundStep;
@@ -165,11 +175,9 @@ int main(int argc, char * argv[]) {
   Rc_z_disp=sqrt(Rc_z_disp/(float)ExperimentNum);
 
   if (ThreeDMode) {
-    rs = pow((3/(4*ObjectNum*pi)),0.33333);
     Rc_av = (Rc_x_av + Rc_y_av + Rc_z_av)/3;
     Rc_disp = (Rc_x_disp + Rc_y_disp + Rc_z_disp)/3;
   } else {
-    rs = sqrt(1/(ObjectNum*pi));
     Rc_av = (Rc_x_av + Rc_y_av)/2;
     Rc_disp = (Rc_x_disp + Rc_y_disp)/2;
   }
@@ -283,6 +291,20 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   };
 };
 
+float WildStickToStickDistance (float * Stick1, float * Stick2) {
+  return fabs(x1-x2)+fabs(z1-z2)+fabs(z1-z2)-(W1+W2)-(L1+L2);
+};
+
+float RoughStickToStickDistance (float * Stick1, float * Stick2) {
+  static float dx, dy, dz;
+
+  dx = x1-x2;
+  dy = y1-y2;
+  dz = z1-z2;
+  
+  return sqrt(dx*dx+dy*dy+dz*dz)-(W1+W2)-(L1+L2);
+};
+
 float StickToPointDistance (float * Stick, float * Point) {
 
   static float dx, dy, dz, ex, ey, ez, K, p, Dx, Dy, Dz;
@@ -367,15 +389,22 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 
 		if (SiteState[i] == StateInfClNew) {
 			for (j=0; j < ObjectNum; j++) {
-					if (SiteState[j] == StateNew && (O2Od_i_j < BoundDist)) {
-            if (VerboseMode) {
-              printf("Touch (Distanse = %1.5f)!\n", O2Od_i_j);
-              StickPrint(Site_i);
-              StickPrint(Site_j);
+					if (SiteState[j] == StateNew) {
+            if (WildStickToStickDistance(Site_i,Site_j) < BoundDist) {
+              if (RoughStickToStickDistance(Site_i,Site_j) < BoundDist) {
+                //if (O2Od_i_j < BoundDist) {
+                if (StickToStickDistance(Site_i,Site_j) < BoundDist) {
+                  if (VerboseMode) {
+                    printf("Touch (Distanse = %1.5f)!\n", O2Od_i_j);
+                    StickPrint(Site_i);
+                    StickPrint(Site_j);
+                  }
+                  SiteState[j] = StateInfClNew;
+                  InfCluster[InfClusterStickNum] = j;
+                  InfClusterStickNum ++;
+                }
+              }
             }
-            SiteState[j] = StateInfClNew;
-						InfCluster[InfClusterStickNum] = j;
-						InfClusterStickNum ++;
 					}
 			}
 			SiteState[i] = StateInfClOld;
