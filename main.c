@@ -292,7 +292,7 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
 };
 
 float WildStickToStickDistance (float * Stick1, float * Stick2) {
-  return fabs(x1-x2)+fabs(z1-z2)+fabs(z1-z2)-(W1+W2)-(L1+L2);
+  return fmax(fabs(x1-x2),fmax(fabs(y1-y2),fabs(z1-z2)))-(W1+W2)-(L1+L2);
 };
 
 float RoughStickToStickDistance (float * Stick1, float * Stick2) {
