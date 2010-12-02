@@ -66,6 +66,30 @@ inline int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist); /
 inline int CountBondsAmount(float * Site, float BoundDist); // Returns the total amount of bonds in the system
 
 int main(int argc, char * argv[]) {
+  // Experiments zone
+
+  /*static float Point_test[ParamsNum];*/
+  /*static float Stick_test[ParamsNum];*/
+
+  /*Point_test[X] = 0;*/
+  /*Point_test[Y] = 0;*/
+  /*Point_test[Z] = 0;*/
+  /*Point_test[Length] = 0;*/
+
+  /*Stick_test[X] = 2;*/
+  /*Stick_test[Y] = 2;*/
+  /*Stick_test[Z] = 2;*/
+  /*Stick_test[Theta] = (3.1415)/2;*/
+  /*Stick_test[Fi] = -(3.1415)/4;*/
+  /*Stick_test[Length] = 1;*/
+
+  /*printf("%1.5f\n", StickToPointDistance(Stick_test,Point_test));*/
+
+  /*return 0;*/
+
+  // end
+
+
   SetDefaultValues();
   SetParams(argc,argv);
 
@@ -244,10 +268,10 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   dz = z1-z2;
 
   ex1 = sin(Th1)*cos(F1);
-  ex2 = sin(Th2)*cos(F2);
   ey1 = sin(Th1)*sin(F1);
-  ey2 = sin(Th2)*sin(F2);
   ez1 = cos(Th1);
+  ex2 = sin(Th2)*cos(F2);
+  ey2 = sin(Th2)*sin(F2);
   ez2 = cos(Th2);
 
   K = ex1*ex2+ey1*ey2+ez1*ez2;
