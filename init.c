@@ -16,6 +16,10 @@ void SetDefaultValues() {
 	ObjectNum = ObjectNumDef;
 	BoundAccuracy = BoundAccuracyDef;
   ResFileName = ResFileNameDef;
+
+  Temperature = TemperatureDef;
+  StickEnergyDistortion = StickEnergyDistortionDef;
+  LocalizationLength = LocalizationLengthDef;
 }
 
 void SetParams(int argc, char * argv[]) {
@@ -51,6 +55,16 @@ void SetParams(int argc, char * argv[]) {
 					else PrintHelp (argv[0]);
 					break;
 				};
+				case 't': {
+					if ((i+1) < argc) Temperature=atof(argv[i+1]);
+					else PrintHelp (argv[0]);
+					break;
+				};
+				case 'a': {
+					if ((i+1) < argc) LocalizationLength=atof(argv[i+1]);
+					else PrintHelp (argv[0]);
+					break;
+				};
 				case 'w': {
 					if ((i+1) < argc ) StickWidth = atof (argv[i+1]);
 					else PrintHelp (argv[0]);
@@ -65,6 +79,11 @@ void SetParams(int argc, char * argv[]) {
 					switch (argv[i][2]) {
             case 'l':	{
               if ((i+1) < argc) StickLengthDistortion=atof(argv[i+1]);
+					    else PrintHelp (argv[0]);
+              break;
+						};
+            case 'e':	{
+              if ((i+1) < argc) StickEnergyDistortion=atof(argv[i+1]);
 					    else PrintHelp (argv[0]);
               break;
 						};

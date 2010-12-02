@@ -38,6 +38,7 @@ float * O2Od;
 #define W1 Stick1[Width]
 #define Th1 Stick1[Theta]
 #define F1 Stick1[Fi]
+#define E1 Stick1[Energy]
 #define x2 Stick2[X]
 #define y2 Stick2[Y]
 #define z2 Stick2[Z]
@@ -45,6 +46,7 @@ float * O2Od;
 #define W2 Stick2[Width]
 #define Th2 Stick2[Theta]
 #define F2 Stick2[Fi]
+#define E2 Stick2[Energy]
 
 float F_rand(); // Returns random float number (0->1)
 
@@ -55,11 +57,14 @@ inline float StickToStickDistance (float * Stick1, float * Stick2); // Finds dis
 inline float WildStickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks roughly
 inline float RoughStickToStickDistance (float * Stick1, float * Stick2); // Finds distance between two sticks roughly
 
+inline float StickToStickEnergy (float * Stick1, float * Stick2); // Finds distance between two sticks energies
+
 inline float StickToPointDistance (float * Stick, float * Point); // Finds distance between a stick and a point
 inline float StickToBoundaryDistance (float * Stick, int Dir); // Finds distance from a stick to a boundary at a certain direction
 
 inline void FindDistances(float * Stick); // Finds distances between all the sticks in array and stores them to O2Od
 
+inline float BondCriteria(float dR, float dE); // Simply returns equation for Eta
 inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); // Checks whether percotation is achieved
 inline int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist); // Checks whether the first stick touches the second
 
@@ -102,15 +107,15 @@ int main(int argc, char * argv[]) {
 
   float rs = 0;
   float BoundStep = 0, StartBoundStep = 0;
-  float Rc_av = 0, Rc_disp = 0, nu_c_av = 0, nu_c_disp = 0;
-  float BoundDistNew_x = 0, BoundDist_x = 0, Rc_x_av = 0, Rc_x_disp = 0, nu_c_x_av = 0, nu_c_x_disp = 0;
-  float BoundDistNew_y = 0, BoundDist_y = 0, Rc_y_av = 0, Rc_y_disp = 0, nu_c_y_av = 0, nu_c_y_disp = 0;
-  float BoundDistNew_z = 0, BoundDist_z = 0, Rc_z_av = 0, Rc_z_disp = 0, nu_c_z_av = 0, nu_c_z_disp = 0;
+  float Eta_c_av = 0, Eta_c_disp = 0, nu_c_av = 0, nu_c_disp = 0;
+  float BoundDistNew_x = 0, BoundDist_x = 0, Eta_c_x_av = 0, Eta_c_x_disp = 0, nu_c_x_av = 0, nu_c_x_disp = 0;
+  float BoundDistNew_y = 0, BoundDist_y = 0, Eta_c_y_av = 0, Eta_c_y_disp = 0, nu_c_y_av = 0, nu_c_y_disp = 0;
+  float BoundDistNew_z = 0, BoundDist_z = 0, Eta_c_z_av = 0, Eta_c_z_disp = 0, nu_c_z_av = 0, nu_c_z_disp = 0;
 
-  float * Rc_x, * Rc_y, * Rc_z;
-  Rc_x = malloc(ExperimentNum*sizeof(float));
-  Rc_y = malloc(ExperimentNum*sizeof(float));
-  Rc_z = malloc(ExperimentNum*sizeof(float));
+  float * Eta_c_x, * Eta_c_y, * Eta_c_z;
+  Eta_c_x = malloc(ExperimentNum*sizeof(float));
+  Eta_c_y = malloc(ExperimentNum*sizeof(float));
+  Eta_c_z = malloc(ExperimentNum*sizeof(float));
 
   float * nu_c_x, * nu_c_y, * nu_c_z;
   nu_c_x = malloc(ExperimentNum*sizeof(float));
@@ -122,7 +127,7 @@ int main(int argc, char * argv[]) {
     StartBoundStep = 1.5f*rs;
   } else {
     rs = sqrt(1/(ObjectNum*pi));
-    StartBoundStep = 2.2f*rs;
+    StartBoundStep = 2.2f*rs/(2*LocalizationLength);
   }
 
   for (e=0; e<ExperimentNum; e++) {
@@ -145,7 +150,11 @@ int main(int argc, char * argv[]) {
       BoundDist_y = BoundDistNew_y;
       BoundDist_z = BoundDistNew_z;
 
-      fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, R_x: %1.5f, R_y: %1.5f, R_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
+      if (ThreeDMode) {
+        fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f, Eta_c_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
+      } else {
+        fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f", BoundStep, BoundDist_x, BoundDist_y);
+      }
 
       percolation_x = CheckPercolation(Stick, BoundDist_x, MIN_X, MAX_X);
       percolation_y = CheckPercolation(Stick, BoundDist_y, MIN_Y, MAX_Y);
@@ -159,9 +168,9 @@ int main(int argc, char * argv[]) {
       else BoundDistNew_z -= BoundStep;
     }
 
-    Rc_x[e] = BoundDist_x;
-    Rc_y[e] = BoundDist_y;
-    Rc_z[e] = BoundDist_z;
+    Eta_c_x[e] = BoundDist_x;
+    Eta_c_y[e] = BoundDist_y;
+    Eta_c_z[e] = BoundDist_z;
 
     nu_c_x[e] = (float)CountBondsAmount(Stick, BoundDist_x)/(float)ObjectNum;
     nu_c_y[e] = (float)CountBondsAmount(Stick, BoundDist_y)/(float)ObjectNum;
@@ -171,65 +180,65 @@ int main(int argc, char * argv[]) {
   }
 
   for (e=0; e<ExperimentNum; e++) {
-    Rc_x_av += Rc_x[e];
-    Rc_y_av += Rc_y[e];
-    Rc_z_av += Rc_z[e];
+    Eta_c_x_av += Eta_c_x[e];
+    Eta_c_y_av += Eta_c_y[e];
+    Eta_c_z_av += Eta_c_z[e];
 
     nu_c_x_av += nu_c_x[e];
     nu_c_y_av += nu_c_y[e];
     nu_c_z_av += nu_c_z[e];
   }
 
-  Rc_x_av=Rc_x_av/(float)ExperimentNum;
-  Rc_y_av=Rc_y_av/(float)ExperimentNum;
-  Rc_z_av=Rc_z_av/(float)ExperimentNum;
+  Eta_c_x_av=Eta_c_x_av/(float)ExperimentNum;
+  Eta_c_y_av=Eta_c_y_av/(float)ExperimentNum;
+  Eta_c_z_av=Eta_c_z_av/(float)ExperimentNum;
 
   nu_c_x_av=nu_c_x_av/(float)ExperimentNum;
   nu_c_y_av=nu_c_y_av/(float)ExperimentNum;
   nu_c_z_av=nu_c_z_av/(float)ExperimentNum;
 
   for (e=0; e<ExperimentNum; e++) {
-    Rc_x_disp += pow(Rc_x[e]-Rc_x_av,2);
-    Rc_y_disp += pow(Rc_y[e]-Rc_y_av,2);
-    Rc_z_disp += pow(Rc_z[e]-Rc_z_av,2);
+    Eta_c_x_disp += pow(Eta_c_x[e]-Eta_c_x_av,2);
+    Eta_c_y_disp += pow(Eta_c_y[e]-Eta_c_y_av,2);
+    Eta_c_z_disp += pow(Eta_c_z[e]-Eta_c_z_av,2);
 
     nu_c_x_disp += pow(nu_c_x[e]-nu_c_x_av,2);
     nu_c_y_disp += pow(nu_c_y[e]-nu_c_y_av,2);
     nu_c_z_disp += pow(nu_c_z[e]-nu_c_z_av,2);
   }
 
-  Rc_x_disp=sqrt(Rc_x_disp/(float)ExperimentNum);
-  Rc_y_disp=sqrt(Rc_y_disp/(float)ExperimentNum);
-  Rc_z_disp=sqrt(Rc_z_disp/(float)ExperimentNum);
+  Eta_c_x_disp=sqrt(Eta_c_x_disp/(float)ExperimentNum);
+  Eta_c_y_disp=sqrt(Eta_c_y_disp/(float)ExperimentNum);
+  Eta_c_z_disp=sqrt(Eta_c_z_disp/(float)ExperimentNum);
 
   nu_c_x_disp=sqrt(nu_c_x_disp/(float)ExperimentNum);
   nu_c_y_disp=sqrt(nu_c_y_disp/(float)ExperimentNum);
   nu_c_z_disp=sqrt(nu_c_z_disp/(float)ExperimentNum);
 
   if (ThreeDMode) {
-    Rc_av = (Rc_x_av + Rc_y_av + Rc_z_av)/3;
-    Rc_disp = (Rc_x_disp + Rc_y_disp + Rc_z_disp)/3;
+    Eta_c_av = (Eta_c_x_av + Eta_c_y_av + Eta_c_z_av)/3;
+    Eta_c_disp = (Eta_c_x_disp + Eta_c_y_disp + Eta_c_z_disp)/3;
 
     nu_c_av = (nu_c_x_av + nu_c_y_av + nu_c_z_av)/3;
     nu_c_disp = (nu_c_x_disp + nu_c_y_disp + nu_c_z_disp)/3;
   } else {
-    Rc_av = (Rc_x_av + Rc_y_av)/2;
-    Rc_disp = (Rc_x_disp + Rc_y_disp)/2;
+    Eta_c_av = (Eta_c_x_av + Eta_c_y_av)/2;
+    Eta_c_disp = (Eta_c_x_disp + Eta_c_y_disp)/2;
 
     nu_c_av = (nu_c_x_av + nu_c_y_av)/2;
     nu_c_disp = (nu_c_x_disp + nu_c_y_disp)/2;
   }
 
-  fprintf (stderr,"Rc_x:%1.5f±%1.5f, Rc_y:%1.5f±%1.5f, Rc_z:%1.5f±%1.5f, r_s: %1.5f, nu_c: %1.5f±%1.5f\n", Rc_x_av, Rc_x_disp, Rc_y_av, Rc_y_disp, Rc_z_av, Rc_z_disp, rs, nu_c_av, nu_c_disp); 
+  fprintf (stderr,"Eta_c: %1.5f±%1.5f, r_s: %1.5f, nu_c: %1.5f±%1.5f\n", Eta_c_av, Eta_c_disp, rs, nu_c_av, nu_c_disp);
 
-	fprintf (res, "%%e\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Rc\t%%Rc_e\t%%rs\t%%Rc/rs\t%%Rc/rs_e\t%%nu_c\t%%nu_c_e\n" );
-	fprintf (res, "%d\t%d\t", ExperimentNum, ObjectNum);
+	fprintf (res, "%%e\t%%t\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Eta_c\t%%Eta_c_e\t%%rs\t%%Eta_c/rs\t%%Eta_c/rs_e\t%%nu_c\t%%nu_c_e\n" );
+	fprintf (res, "%d\t%1.5f\t%d\t", ExperimentNum, Temperature, ObjectNum);
 	fprintf (res, "%1.5f\t%1.5f\t", StickLength, StickLengthDistortion);
 	fprintf (res, "%1.5f\t%1.5f\t", StickWidth, StickWidthDistortion);
 	fprintf (res, "%1.5f\t%1.5f\t", StickFiDistortion, StickThetaDistortion);
-	fprintf (res, "%1.7f\t%1.7f\t", Rc_av, Rc_disp);
+	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av, Eta_c_disp);
 	fprintf (res, "%1.7f\t", rs);
-	fprintf (res, "%1.7f\t%1.7f\t", Rc_av/rs, Rc_disp/rs);
+	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av/rs, Eta_c_disp/rs);
 	fprintf (res, "%1.7f\t%1.7f\t", nu_c_av, nu_c_disp);
 	fprintf (res, "\n");
 
@@ -242,6 +251,7 @@ void StickRandomInit(float * Stick) {
   Stick[Length]=(StickLength-StickLengthDistortion)+2*StickLengthDistortion*F_rand();
   Stick[Width]=(StickWidth-StickWidthDistortion)+2*StickWidthDistortion*F_rand();
   Stick[Fi]=(pi-StickFiDistortion)+2*StickFiDistortion*F_rand();
+  Stick[Energy]=StickEnergyDistortion*F_rand();
   if (ThreeDMode) {
     Stick[Z]=MIN_ZSide+(MAX_ZSide-MIN_ZSide)*F_rand();
     Stick[Theta]=(pi/2-StickThetaDistortion)+2*StickThetaDistortion*F_rand();
@@ -344,6 +354,10 @@ float RoughStickToStickDistance (float * Stick1, float * Stick2) {
   return sqrt(dx*dx+dy*dy+dz*dz)-(W1+W2)-(L1+L2);
 };
 
+float StickToStickEnergy (float * Stick1, float * Stick2) {
+  return (fabs(E1-E2)+fabs(E1-StickEnergyDistortion/2)+(E2-StickEnergyDistortion/2))/2;
+};
+
 float StickToPointDistance (float * Stick, float * Point) {
 
   static float dx, dy, dz, ex, ey, ez, K, p, Dx, Dy, Dz;
@@ -395,11 +409,14 @@ void FindDistances(float * Stick) {
 }
 
 int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist) {
-  if (WildStickToStickDistance(Stick1,Stick2) < BoundDist) {
-    if (RoughStickToStickDistance(Stick1,Stick2) < BoundDist) {
-      if (StickToStickDistance(Stick1,Stick2) < BoundDist) {
+  if (BondCriteria(WildStickToStickDistance(Stick1,Stick2),StickToStickEnergy(Stick1,Stick2)) < BoundDist) {
+    if (BondCriteria(RoughStickToStickDistance(Stick1,Stick2),StickToStickEnergy(Stick1,Stick2)) < BoundDist) {
+      if (BondCriteria(StickToStickDistance(Stick1,Stick2),StickToStickEnergy(Stick1,Stick2)) < BoundDist) {
         if (VerboseMode) {
-          printf("Touch (Distanse = %1.5f)!\n", StickToStickDistance(Stick1,Stick2));
+          printf("Touch (Distanse = %1.5f, Energy = %1.5f, Criteria = %1.5f)!\n",
+            StickToStickDistance(Stick1,Stick2),StickToStickEnergy(Stick1,Stick2),
+            BondCriteria(StickToStickDistance(Stick1,Stick2),StickToStickEnergy(Stick1,Stick2))
+          );
           StickPrint(Stick1);
           StickPrint(Stick2);
         }
@@ -409,6 +426,12 @@ int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist) {
   }
   return 0;
 }
+
+float BondCriteria(float dR, float dE) {
+  return dR;
+  //return dR/(2*LocalizationLength);
+  //return dR/(2*LocalizationLength) + dE/Temperature;
+};
 
 int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 {
@@ -479,13 +502,16 @@ void PrintHelp (char * pName)
 	printf("\t-3\t\t\t3 dimension system mode [off]\n");
 	printf("\t-e int\t\t\tnumber of realisations [1]\n");
 	printf("\t-n int\t\t\tnumber of objects [10]\n");
+	printf("\t-a int\t\t\tlocalization length, 10^4A [0.01]\n");
+	printf("\t-t int\t\t\ttemperature,meV [10]\n");
 	printf("\t-c float\t\tcritical bound dist accuracy [0.1]\n");
-	printf("\t-l float\t\tstick length [0.0]\n");
-	printf("\t-dl float\t\tstick leng dispersion [0.0]\n");
-	printf("\t-w float\t\tstick width [0.0]\n");
-	printf("\t-dw float\t\tstick width dispersion [0.0]\n");
+	printf("\t-l float\t\tstick length, 10^4A [0.0]\n");
+	printf("\t-dl float\t\tstick leng dispersion, 10^4A [0.0]\n");
+	printf("\t-w float\t\tstick width, 10^4A [0.0]\n");
+	printf("\t-dw float\t\tstick width dispersion, 10^4A [0.0]\n");
 	printf("\t-df float\t\tstick azimuth angle dispersion [pi]\n");
 	printf("\t-dt float\t\tstick polar angle dispersion [pi/2]\n");
+	printf("\t-de float\t\tstick energy dispersion, meV [0]\n");
 	printf("\t-r FILE\t\t\tresults output file [results.txt]\n");
   printf("\t-h, --help\t\tshow this usage statement\n");
 	exit (1);						

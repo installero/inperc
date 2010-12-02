@@ -24,24 +24,29 @@
 #define StickThetaDistortionDef	    pi*0.5f
 #define StickFiDistortionDef	      pi*1.0f
 
+#define TemperatureDef              10
+#define StickEnergyDistortionDef    0
+#define LocalizationLengthDef       0.01
+
 #define ExperimentNumDef	          1
 #define ObjectNumDef		            10
 #define BoundAccuracyDef            0.1f
 #define ResFileNameDef		          "results.txt"
 
-/*
-#define SeekLengthDef		0
-#define SearchCritAvBoundsDef		0
-*/
-
 int VerboseMode;			          // Verbose mode on/off
-int ThreeDMode;			                // 3 dimensions mode on/off
+int ThreeDMode;			            // 3 dimensions mode on/off
+
 float StickLength;			        // Stick length
 float StickLengthDistortion;		// Stick length is distorted with that dispercy
 float StickWidth;			          // Stick width
 float StickWidthDistortion;		  // Stick width is distorted with that dispercy
 float StickThetaDistortion;     // Stick polar angle distortion
 float StickFiDistortion;        // Stick azimuth angle distortion
+
+float Temperature;              // Systems temperature
+float StickEnergyDistortion;    // Density of states width
+float LocalizationLength;       // Wave function decay radio
+
 int ExperimentNum;		          // Number of realisations of each system
 int ObjectNum;		              // Number of objects
 float BoundAccuracy;            // Minimum value that two bound distance steps can vary one from each other
@@ -49,10 +54,5 @@ char * ResFileName;             // Results file name
 
 void SetDefaultValues();
 void SetParams();
-
-/*
-bool SeekLength;		// Seek Critical Length (Rc=0)
-bool SearchCritAvBounds;	// Search for critical average bounds per node value
-*/
 
 #include "init.c"

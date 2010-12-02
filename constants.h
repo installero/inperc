@@ -14,4 +14,5 @@
 #define Theta     4
 #define Fi        5
 #define Width     6
-#define ParamsNum 7
+#define Energy    7
+#define ParamsNum 8
