@@ -124,10 +124,10 @@ int main(int argc, char * argv[]) {
 
   if (ThreeDMode) {
     rs = pow((3/(4*ObjectNum*pi)),0.33333);
-    StartBoundStep = 1.5f*rs;
+    StartBoundStep = 1.5f*2*rs/LocalizationLength + StickEnergyDistortion/Temperature;
   } else {
     rs = sqrt(1/(ObjectNum*pi));
-    StartBoundStep = 2.2f*rs/(2*LocalizationLength);
+    StartBoundStep = 2.2f*2*rs/LocalizationLength + StickEnergyDistortion/Temperature;
   }
 
   for (e=0; e<ExperimentNum; e++) {
@@ -151,9 +151,9 @@ int main(int argc, char * argv[]) {
       BoundDist_z = BoundDistNew_z;
 
       if (ThreeDMode) {
-        fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f, Eta_c_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
+        fprintf(stderr, "\rCritical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f, Eta_c_z: %1.5f", BoundStep, BoundDist_x, BoundDist_y, BoundDist_z);
       } else {
-        fprintf(stderr, "\rCounting distances: 100%%, Critical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f", BoundStep, BoundDist_x, BoundDist_y);
+        fprintf(stderr, "\rCritical radius acuracy: %1.5f, Eta_c_x: %1.5f, Eta_c_y: %1.5f", BoundStep, BoundDist_x, BoundDist_y);
       }
 
       percolation_x = CheckPercolation(Stick, BoundDist_x, MIN_X, MAX_X);
@@ -428,9 +428,7 @@ int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist) {
 }
 
 float BondCriteria(float dR, float dE) {
-  return dR;
-  //return dR/(2*LocalizationLength);
-  //return dR/(2*LocalizationLength) + dE/Temperature;
+  return 2*dR/LocalizationLength + dE/Temperature;
 };
 
 int CheckPercolation(float * Site, float BoundDist, int Start, int End)
