@@ -124,10 +124,10 @@ int main(int argc, char * argv[]) {
 
   if (ThreeDMode) {
     rs = pow((3/(4*ObjectNum*pi)),0.33333);
-    StartBoundStep = 1.5f*2*rs/LocalizationLength + StickEnergyDistortion/Temperature;
+    StartBoundStep = 1.5f*2.0f*rs/LocalizationLength + StickEnergyDistortion/Temperature;
   } else {
     rs = sqrt(1/(ObjectNum*pi));
-    StartBoundStep = 2.2f*2*rs/LocalizationLength + StickEnergyDistortion/Temperature;
+    StartBoundStep = 2.2f*2.0f*rs/LocalizationLength + StickEnergyDistortion/Temperature;
   }
 
   for (e=0; e<ExperimentNum; e++) {
@@ -444,7 +444,7 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 	if (VerboseMode) printf("Start:%d, BoundDist:%1.5f\n", Start, BoundDist);
 
 	for (i=0;i < ObjectNum;i++) {
-		if (StickToBoundaryDistance(Site_i, Start) < BoundDist) {
+		if (BondCriteria(StickToBoundaryDistance(Site_i, Start),0) < BoundDist) {
 			if (VerboseMode) StickPrint(Site_i);
 			SiteState[i] = StateInfClNew;
 			InfCluster[InfClusterStickNum] = i;
@@ -455,7 +455,7 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 	for (k=0; k < InfClusterStickNum; k++) {
 		i = InfCluster[k];
 
-		if (StickToBoundaryDistance(Site_i, End) < BoundDist) {
+		if (BondCriteria(StickToBoundaryDistance(Site_i, End),0) < BoundDist) {
 			if (VerboseMode) {
 				printf ("End (%d):\n", End);
         StickPrint(Site_i);
