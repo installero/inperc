@@ -250,11 +250,11 @@ void StickRandomInit(float * Stick) {
   Stick[Y]=MIN_YSide+(MAX_YSide-MIN_YSide)*F_rand();
   Stick[Length]=(StickLength-StickLengthDistortion)+2*StickLengthDistortion*F_rand();
   Stick[Width]=(StickWidth-StickWidthDistortion)+2*StickWidthDistortion*F_rand();
-  Stick[Fi]=(pi-StickFiDistortion)+2*StickFiDistortion*F_rand();
+  Stick[Fi]=(2*F_rand()-1)*StickFiDistortion;
   Stick[Energy]=StickEnergyDistortion*F_rand();
   if (ThreeDMode) {
     Stick[Z]=MIN_ZSide+(MAX_ZSide-MIN_ZSide)*F_rand();
-    Stick[Theta]=(pi/2-StickThetaDistortion)+2*StickThetaDistortion*F_rand();
+    Stick[Theta]=pi/2-StickThetaDistortion*(2*F_rand()-1);
   } else {
     Stick[Z]=0;
     Stick[Theta]=pi/2; 
