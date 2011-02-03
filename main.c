@@ -231,12 +231,13 @@ int main(int argc, char * argv[]) {
 
   fprintf (stderr,"Eta_c: %1.5f±%1.5f, r_s: %1.5f, nu_c: %1.5f±%1.5f\n", Eta_c_av, Eta_c_disp, rs, nu_c_av, nu_c_disp);
 
-	fprintf (res, "%%e\t%%t\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Eta_c\t%%Eta_c_e\t%%rs\t%%Eta_c/rs\t%%Eta_c/rs_e\t%%nu_c\t%%nu_c_e\n" );
+	fprintf (res, "%%e\t%%t\t%%n\t%%l\t%%dl\t%%w\t%%dw\t%%df\t%%dt\t%%Eta_c\t%%Eta_c_e\t%%Rc\t%%Rc_e\t%%rs\t%%Eta_c/rs\t%%Eta_c/rs_e\t%%nu_c\t%%nu_c_e\n" );
 	fprintf (res, "%d\t%1.5f\t%d\t", ExperimentNum, Temperature, ObjectNum);
 	fprintf (res, "%1.5f\t%1.5f\t", StickLength, StickLengthDistortion);
 	fprintf (res, "%1.5f\t%1.5f\t", StickWidth, StickWidthDistortion);
 	fprintf (res, "%1.5f\t%1.5f\t", StickFiDistortion, StickThetaDistortion);
 	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av, Eta_c_disp);
+	fprintf (res, "%1.7f\t%1.7f\t", 2*(Eta_c_av)/LocalizationLength, 2*(Eta_c_disp)/LocalizationLength);
 	fprintf (res, "%1.7f\t", rs);
 	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av/rs, Eta_c_disp/rs);
 	fprintf (res, "%1.7f\t%1.7f\t", nu_c_av, nu_c_disp);
