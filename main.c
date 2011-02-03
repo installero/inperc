@@ -237,7 +237,7 @@ int main(int argc, char * argv[]) {
 	fprintf (res, "%1.5f\t%1.5f\t", StickWidth, StickWidthDistortion);
 	fprintf (res, "%1.5f\t%1.5f\t", StickFiDistortion, StickThetaDistortion);
 	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av, Eta_c_disp);
-	fprintf (res, "%1.7f\t%1.7f\t", 2*(Eta_c_av)/LocalizationLength, 2*(Eta_c_disp)/LocalizationLength);
+	fprintf (res, "%1.7f\t%1.7f\t", LocalizationLength*(Eta_c_av)/2, LocalizationLength*(Eta_c_disp)/2);
 	fprintf (res, "%1.7f\t", rs);
 	fprintf (res, "%1.7f\t%1.7f\t", Eta_c_av/rs, Eta_c_disp/rs);
 	fprintf (res, "%1.7f\t%1.7f\t", nu_c_av, nu_c_disp);
