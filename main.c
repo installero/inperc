@@ -491,7 +491,7 @@ int CountBondsAmount(float * Site, float BoundDist) {
 		}
 	}
 
-  return res;
+  return 2*res;
 }
 
 void PrintHelp (char * pName)
