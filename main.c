@@ -68,7 +68,7 @@ inline float BondCriteria(float dR, float dE); // Simply returns equation for Et
 inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); // Checks whether percotation is achieved
 inline int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist); // Checks whether the first stick touches the second
 
-inline int CountBondsAmount(float * Site, float BoundDist); // Returns the total amount of bonds in the system
+inline float CountAverageBondsAmount(float * Site, float BoundDist); // Returns the total amount of bonds in the system
 
 int main(int argc, char * argv[]) {
   // Experiments zone
@@ -172,9 +172,9 @@ int main(int argc, char * argv[]) {
     Eta_c_y[e] = BoundDist_y;
     Eta_c_z[e] = BoundDist_z;
 
-    nu_c_x[e] = (float)CountBondsAmount(Stick, BoundDist_x)/(float)ObjectNum;
-    nu_c_y[e] = (float)CountBondsAmount(Stick, BoundDist_y)/(float)ObjectNum;
-    if (ThreeDMode) nu_c_z[e] = (float)CountBondsAmount(Stick, BoundDist_z)/(float)ObjectNum;
+    nu_c_x[e] = CountAverageBondsAmount(Stick, BoundDist_x);
+    nu_c_y[e] = CountAverageBondsAmount(Stick, BoundDist_y);
+    if (ThreeDMode) nu_c_z[e] = CountAverageBondsAmount(Stick, BoundDist_z);
 
     fprintf(stderr,"\n");
   }
@@ -481,18 +481,38 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 	return 0;
 };
 
-int CountBondsAmount(float * Site, float BoundDist) {
+int BelongsToBoundaryRegion(float * Stick, float BoundDist) {
+  float DoubleBoundDist = 2*BoundDist;
+  if (StickToBoundaryDistance(Stick, MIN_X) < DoubleBoundDist) return 1;
+  if (StickToBoundaryDistance(Stick, MAX_X) < DoubleBoundDist) return 1;
+  if (StickToBoundaryDistance(Stick, MIN_Y) < DoubleBoundDist) return 1;
+  if (StickToBoundaryDistance(Stick, MAX_Y) < DoubleBoundDist) return 1;
+  if (ThreeDMode) {
+    if (StickToBoundaryDistance(Stick, MIN_Z) < DoubleBoundDist) return 1;
+    if (StickToBoundaryDistance(Stick, MAX_Z) < DoubleBoundDist) return 1;
+  }
+  return 0;
+};
+
+float CountAverageBondsAmount(float * Site, float BoundDist) {
   int res = 0;
   int i,j;
+  int invSticksAmount = 0;
 
-	for (i=0; i < ObjectNum; i++) {
-	  for (j=i+1; j < ObjectNum; j++) {
-  		if (CheckBondPresence(Site_i, Site_j, BoundDist)) res++;
-		}
+	for (i = 0; i < ObjectNum; i++) {
+    if(!BelongsToBoundaryRegion(Site_i, BoundDist)) {
+      for (j = 0; j < ObjectNum; j++) {
+        if (j != i) {
+          if (CheckBondPresence(Site_i, Site_j, BoundDist)) res++;
+        }
+      }
+    } else {
+      invSticksAmount++;
+    }
 	}
 
-  return 2*res;
-}
+  return (float)res/(float)(ObjectNum-invSticksAmount);
+};
 
 void PrintHelp (char * pName)
 {
