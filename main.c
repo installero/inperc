@@ -69,6 +69,7 @@ inline int CheckPercolation(float * Site, float BoundDist, int Start, int End); 
 inline int CheckBondPresence(float * Stick1, float * Stick2, float BoundDist); // Checks whether the first stick touches the second
 
 inline float CountAverageBondsAmount(float * Site, float BoundDist); // Returns the total amount of bonds in the system
+inline int BelongsToBoundaryRegion(float * Stick, float BoundDist); // Returns 1 if stick belongs to boundary region within bond distance
 
 int main(int argc, char * argv[]) {
   // Experiments zone
@@ -483,13 +484,13 @@ int CheckPercolation(float * Site, float BoundDist, int Start, int End)
 
 int BelongsToBoundaryRegion(float * Stick, float BoundDist) {
   float DoubleBoundDist = 2*BoundDist;
-  if (StickToBoundaryDistance(Stick, MIN_X) < DoubleBoundDist) return 1;
-  if (StickToBoundaryDistance(Stick, MAX_X) < DoubleBoundDist) return 1;
-  if (StickToBoundaryDistance(Stick, MIN_Y) < DoubleBoundDist) return 1;
-  if (StickToBoundaryDistance(Stick, MAX_Y) < DoubleBoundDist) return 1;
+  if (BondCriteria(StickToBoundaryDistance(Stick, MIN_X),0) < DoubleBoundDist) return 1;
+  if (BondCriteria(StickToBoundaryDistance(Stick, MAX_X),0) < DoubleBoundDist) return 1;
+  if (BondCriteria(StickToBoundaryDistance(Stick, MIN_Y),0) < DoubleBoundDist) return 1;
+  if (BondCriteria(StickToBoundaryDistance(Stick, MAX_Y),0) < DoubleBoundDist) return 1;
   if (ThreeDMode) {
-    if (StickToBoundaryDistance(Stick, MIN_Z) < DoubleBoundDist) return 1;
-    if (StickToBoundaryDistance(Stick, MAX_Z) < DoubleBoundDist) return 1;
+    if (BondCriteria(StickToBoundaryDistance(Stick, MIN_Z),0) < DoubleBoundDist) return 1;
+    if (BondCriteria(StickToBoundaryDistance(Stick, MAX_Z),0) < DoubleBoundDist) return 1;
   }
   return 0;
 };
