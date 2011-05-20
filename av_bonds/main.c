@@ -4,8 +4,8 @@
 
 void PrintHelp (char * pName); // Prints help output
 
-#include "constants.h"
-#include "init.h"
+#include "include/constants.h"
+#include "include/init.h"
 
 FILE * res;
 FILE * dbg_obj;

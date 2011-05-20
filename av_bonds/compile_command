@@ -1,1 +1,1 @@
-gcc main.c -Wall -o main -lm
+gcc main.c -Wall -o bin/av_bonds -lm
