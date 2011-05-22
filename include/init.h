@@ -23,7 +23,7 @@
 #define StickWidthDef		            0.0f
 #define StickWidthDistortionDef		  0.0f
 #define StickThetaDistortionDef	    pi*0.5f
-#define StickFiDistortionDef	      pi*1.0f
+#define StickFiDistortionDef	      pi*0.5f
 
 #define TemperatureDef              10
 #define StickEnergyDistortionDef    0

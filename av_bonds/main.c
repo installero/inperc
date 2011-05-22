@@ -51,10 +51,21 @@ int main(int argc, char * argv[]) {
   float rs = 0;
   if (ThreeDMode) rs = pow((3/(4*ObjectNum*pi)),0.33333);
   else rs = sqrt(1/(ObjectNum*pi));
+
+  float nu_t = ObjectNum*(
+          (pi*BondDistance*BondDistance) +
+          (4*StickLength*BondDistance)+
+          (StickFiDistortion ? StickLength*StickLength*(1-(sin(2*StickFiDistortion)/(2*StickFiDistortion)))/StickFiDistortion : 0)
+          );
+  int color = (nu_t < nu_av + nu_disp && nu_t > nu_av - nu_disp ) ? 32 : 31;
   
-  fprintf(res,"%%l\t%%n\t%%rs\t%%a\t%%df\t%%bd\t%%nu\t%%nu_err\n");
-  fprintf(res,"%1.5f\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n", StickLength, ObjectNum, rs, LocalizationLength, StickFiDistortion, BondDistance, nu_av, nu_disp);
-  fprintf(stderr,"\n%1.5f\t%d\t%1.5f\t%1.5f\t%1.5f\t%1.5f %1.5f±%1.5f\n", StickLength, ObjectNum, rs, LocalizationLength, StickFiDistortion, BondDistance, nu_av, nu_disp);
+  fprintf(res,"%%l\t%%n\t%%rs\t%%a\t%%df\t%%bd\t%%nu\t%%nu_err\t%%nu_t\n");
+  fprintf(res,"%1.7f\t%d\t%1.7f\t%1.7f\t%1.7f\t%1.7f\t%1.7f\t%1.7f\t%1.7f\n", StickLength, ObjectNum, rs, LocalizationLength, StickFiDistortion, BondDistance, nu_av, nu_disp, nu_t);
+
+  fprintf(stderr,"\n%1.7f\t%d\t%1.7f\t%1.7f\t%1.7f\t%1.7f %1.7f±%1.7f", StickLength, ObjectNum, rs, LocalizationLength, StickFiDistortion, BondDistance, nu_av, nu_disp);
+  fprintf(stderr, "%c[%d;%d;%dm (ν_t = %1.7f)", 0x1B, 1, color, 40, nu_t);
+  fprintf(stderr, "%c[%dm\n", 0x1B, 0);
+
   
   return 0;
 }
@@ -73,7 +84,7 @@ void PrintHelp (char * pName)
 	printf("\t-dl float\t\tstick leng dispersion, 10^4A [0.0]\n");
 	printf("\t-w float\t\tstick width, 10^4A [0.0]\n");
 	printf("\t-dw float\t\tstick width dispersion, 10^4A [0.0]\n");
-	printf("\t-df float\t\tstick azimuth angle dispersion [pi]\n");
+	printf("\t-df float\t\tstick azimuth angle dispersion [pi/2]\n");
 	printf("\t-dt float\t\tstick polar angle dispersion [pi/2]\n");
 	printf("\t-de float\t\tstick energy dispersion, meV [0]\n");
 	printf("\t-r FILE\t\t\tresults output file [results.txt]\n");

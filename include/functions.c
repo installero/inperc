@@ -278,9 +278,8 @@ float CountAverageBondsAmount(float * Site, float BoundDist) {
           if (CheckBondPresence(Site_i, Site_j, BoundDist)) res++;
         }
       }
-    } else {
-      invSticksAmount++;
     }
+    else invSticksAmount++;
 	}
 
   return (float)res/(float)(ObjectNum-invSticksAmount);
