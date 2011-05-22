@@ -15,7 +15,8 @@
 
 // Experiment
 #define VerboseModeDef		          0
-#define ThreDModeDef		                0
+#define TestModeDef		              0
+#define ThreDModeDef		            0
 
 #define StickLengthDef		          0.0f
 #define StickLengthDistortionDef		0.0f
@@ -26,7 +27,7 @@
 
 #define TemperatureDef              10
 #define StickEnergyDistortionDef    0
-#define LocalizationLengthDef       0.01
+#define LocalizationLengthDef       2
 
 #define ExperimentNumDef	          1
 #define ObjectNumDef		            10
@@ -36,6 +37,7 @@
 #define BondDistanceDef             0.1f
 
 int VerboseMode;			          // Verbose mode on/off
+int TestMode;			          // Verbose mode on/off
 int ThreeDMode;			            // 3 dimensions mode on/off
 
 float StickLength;			        // Stick length

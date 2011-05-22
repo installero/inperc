@@ -1,6 +1,7 @@
 void SetDefaultValues() {
   // Setting modes
 	VerboseMode = VerboseModeDef;
+	TestMode = TestModeDef;
   ThreeDMode = ThreDModeDef;
 
   // Setting default stick parameters 
@@ -31,6 +32,10 @@ void SetParams(int argc, char * argv[]) {
 			switch ( argv[i][1] ) {
 				case 'v':	{
 					VerboseMode=1;
+					break;
+				};
+				case 'z':	{
+					TestMode=1;
 					break;
 				};
 				case '3':	{
