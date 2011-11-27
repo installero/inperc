@@ -52,11 +52,19 @@ int main(int argc, char * argv[]) {
   if (ThreeDMode) rs = pow((3/(4*ObjectNum*pi)),0.33333);
   else rs = sqrt(1/(ObjectNum*pi));
 
-  float nu_t = ObjectNum*(
-          (pi*BondDistance*BondDistance) +
-          (4*StickLength*BondDistance)+
-          (StickFiDistortion ? StickLength*StickLength*(1-(sin(2*StickFiDistortion)/(2*StickFiDistortion)))/StickFiDistortion : 0)
+  float nu_t = 0;
+  if (ThreeDMode) {
+    nu_t = ObjectNum*(
+            (4*pi*BondDistance*BondDistance*BondDistance/3) +
+            (2*pi*StickLength*BondDistance*BondDistance)
           );
+  } else {
+    nu_t = ObjectNum*(
+            (pi*BondDistance*BondDistance) +
+            (4*StickLength*BondDistance)+
+            (StickFiDistortion ? StickLength*StickLength*(1-(sin(2*StickFiDistortion)/(2*StickFiDistortion)))/StickFiDistortion : 0)
+          );
+  }
   int color = (nu_t < nu_av + nu_disp && nu_t > nu_av - nu_disp ) ? 32 : 31;
   
   fprintf(res,"%%l\t%%n\t%%rs\t%%a\t%%df\t%%bd\t%%nu\t%%nu_err\t%%nu_t\n");
