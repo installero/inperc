@@ -66,9 +66,12 @@ float StickToStickDistance (float * Stick1, float * Stick2) {
   ey2 = sin(Th2)*sin(F2);
   ez2 = cos(Th2);
 
-  K = ex1*ex2+ey1*ey2+ez1*ez2;
-  Kp = dx*ex1+dy*ey1+dz*ez1;
-  Kq = dx*ex2+dy*ey2+dz*ez2;
+  if(ThreeDMode){
+    K = ex1*ex2+ey1*ey2+ez1*ez2;
+    Kp = dx*ex1+dy*ey1+dz*ez1;
+    Kq = dx*ex2+dy*ey2+dz*ez2;
+  }
+  else {K=1;}
 
   if (K == 1) { // if the sticks are parallel
     static float Distance_tmp, Distance_new;
